@@ -1,0 +1,44 @@
+@control-word HLT MI RI RO IO II AI AO SO SU BI OI CE CO JMP FI
+
+@address-word 0 Z C 0 I3 I2 I1 I0 T2 T1 T0
+@address-instruction I3 I2 I1 I0
+@address-operation T2 T1 T0
+
+@fetch
+	MI CO
+	RO II CE
+
+@instruction NOP 0b0000
+
+@instruction LDA 0b0001
+	IO MI
+	RO AI
+
+@instruction STA 0b0010
+	IO MI
+	AO RI
+
+@instruction ADD 0b0011
+	IO MI
+	RO BI
+	SO AI
+
+@instruction SUB 0b0100
+	IO MI
+	RO BI
+	SU AI
+
+@instruction J 0b0101
+	IO JMP
+
+@instruction JZ 0b0110 Z
+	IO JMP
+
+@instruction JC 0b0111 C
+	IO JMP
+
+@instruction OUT 0b1000
+	AO OI
+
+@instruction HLT 0b1001
+	HLT
