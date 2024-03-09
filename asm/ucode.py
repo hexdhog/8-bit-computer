@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 from sys import stdin
-from functools import reduce
 from pathlib import Path
+from functools import reduce
 
 CTRL_WORD = "control-word"
 ADDR_WORD = "address-word"

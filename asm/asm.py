@@ -2,38 +2,53 @@
 
 from __future__ import annotations
 
-from re import split
-from sys import stdin
+from os import getenv
+from pathlib import Path
+from typing import Generator
+from argparse import ArgumentParser
 
-INSTR = {
-  "NOP": (0b0000, 0),
-  "LDA": (0b0001, int),
-  "STA": (0b0010, int),
-  "ADD": (0b0011, int),
-  "SUB": (0b0100, int),
-  "J": (0b0101, int),
-  "JZ": (0b0110, int),
-  "JC": (0b0111, int),
-  "OUT": (0b1000, 0),
-  "HLT": (0b1001, 0)
-}
+DEBUG = int(getenv("DEBUG", "0"))
 
-def readline() -> list | None: return list(filter(None, l.strip("\t\r\n").split(" "))) if (l := stdin.readline()) else None
+def tokens(s: str) -> Generator: return (x for x in (list(filter(None, l.strip("\t\r\n").split(" "))) for l in s.split("\n")) if len(x) > 0)
+def parse_instr(instr: str) -> tuple:
+    op, args = instr.split("(")
+    args = args.strip(")")
+    if all(x.isdigit() for x in args):
+      pos = [x for _, x in sorted([(int(x), [len(args)-i-1 for i, v in enumerate(args) if x == v]) for x in set(args)])]
+    else:
+      pos = []
+    return (int(op, 2), len(op)), (pos, len(args))
 
 if __name__ == "__main__":
-  env, envargs = None, None
-  data, i = bytearray(2**4), 0
-  while (args := readline()) is not None:
-    if len(args) == 0: continue
-    cmd, *args = args
+  parser = ArgumentParser(description="8-bit computer assembly compiler")
+  parser.add_argument("asm", help="assembly code file path")
+  parser.add_argument("-u", "--ucode", help="microcode file path")
+  args = vars(parser.parse_args())
+  if DEBUG > 0: print(args, end="\n\n")
+
+  instr = { t[1]: parse_instr(t[2]) for t in tokens(Path(args["ucode"]).read_text()) if t[0] == "@instruction" }
+  if DEBUG > 0: print("\n".join([f"{k}:\t{v}" for k, v in instr.items()]), end="\n\n")
+
+  env, op = None, None
+  data = bytearray()
+  for t in tokens(Path(args["asm"]).read_text()):
+    cmd, *cmdargs = t
     if cmd[0] == ".":
-      env, envargs = cmd[1:], args
+      env, envargs = cmd[1:], cmdargs
     elif env == "text":
-      assert cmd in INSTR, f"unkown instruction {cmd}"
-      op, arg = INSTR[cmd]
-      if callable(arg): arg = int(arg(*args)) & 0b1111
-      assert isinstance(arg, int), f"invalid argument \"{arg}\" for instruction {cmd}"
-      data[i], i = op << 4 | arg, i+1
+      assert cmd in instr, f"unkown instruction {cmd}"
+      opcode, opargs = instr[cmd]
+      op = (opcode[0] & ((1 << opcode[1]) - 1)) << opargs[1]
+
+      oparg = 0
+      for i, pos in enumerate(opargs[0]):
+        v = int(cmdargs[i], 0) & ((1 << len(pos)) - 1)
+        for j, x in enumerate(pos):
+          oparg |= ((v >> (len(pos) - j - 1)) & 1) << x
+      oparg &= (1 << opargs[1]) - 1
+
+      data += (op | oparg).to_bytes(round((opcode[1] + opargs[1]) / 8), byteorder="big")
     elif env == "data":
-      data[i], i = int(cmd) & 0b11111111, i+1
-  for i in range(len(data)): print(f"{i:02d}: {data[i]:08b}")
+      data += int(cmd, 0).to_bytes(1, byteorder="big")
+
+  for i in range(len(data)): print(f"{i:04d}: {data[i]:08b}")

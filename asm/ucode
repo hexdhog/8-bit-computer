@@ -8,37 +8,39 @@
 	MI CO
 	RO II CE
 
-@instruction NOP 0b0000
+@instruction NOP 0000(xxxx)
 
-@instruction LDA 0b0001
+@instruction LDA 0001(0000)
 	IO MI
 	RO AI
 
-@instruction STA 0b0010
+@instruction STA 0010(0000)
 	IO MI
 	AO RI
 
-@instruction ADD 0b0011
+@instruction ADD 0011(0000)
 	IO MI
 	RO BI
 	SO AI
 
-@instruction SUB 0b0100
+@instruction SUB 0100(0000)
 	IO MI
 	RO BI
 	SU AI
 
-@instruction J 0b0101
+@instruction J 0101(0000)
 	IO JMP
 
-@instruction JZ 0b0110 Z
+@instruction JZ 0110(0000) Z
 	IO JMP
 
-@instruction JC 0b0111 C
+@instruction JC 0111(0000) C
 	IO JMP
 
-@instruction OUT 0b1000
+@instruction OUT 1000(xxxx)
 	AO OI
 
-@instruction HLT 0b1001
+@instruction HLT 1001(xxxx)
 	HLT
+
+@instruction ADDI 1010(0011)
