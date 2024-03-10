@@ -4,20 +4,10 @@ from __future__ import annotations
 
 from os import getenv
 from pathlib import Path
-from typing import Generator
 from argparse import ArgumentParser
+from helper import tokens, parse_instr
 
 DEBUG = int(getenv("DEBUG", "0"))
-
-def tokens(s: str) -> Generator: return (x for x in (list(filter(None, l.strip("\t\r\n").split(" "))) for l in s.split("\n")) if len(x) > 0)
-def parse_instr(instr: str) -> tuple:
-    op, args = instr.split("(")
-    args = args.strip(")")
-    if all(x.isdigit() for x in args):
-      pos = [x for _, x in sorted([(int(x), [len(args)-i-1 for i, v in enumerate(args) if x == v]) for x in set(args)])]
-    else:
-      pos = []
-    return (int(op, 2), len(op)), (pos, len(args))
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="8-bit computer assembly compiler")
