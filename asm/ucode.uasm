@@ -42,5 +42,3 @@
 
 @instruction HLT 1001(xxxx)
 	HLT
-
-@instruction ADDI 1010(0011)

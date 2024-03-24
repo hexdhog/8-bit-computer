@@ -25,7 +25,6 @@ def send(ser: Serial, data: bytes, timeout: int = 0) -> bytes:
   ser.write(data)
   data, start, last = b"", now_ms(), None
   # read serial until timeout is reached or debounce timeout is reached
-  # TODO: invalidate general timeout once data has been read in favour of debounce timeout
   while (timeout <= 0 or now_ms() - start < timeout) and (last is None or now_ms() - last < 100):
     if ser.in_waiting: data, last = data + ser.read(ser.in_waiting), now_ms()
   if DEBUG > 1: print(f"[recv]: {bytes2hex(data)}")
@@ -53,13 +52,16 @@ if __name__ == "__main__":
   parser.add_argument("-f", "--file", help="binary file to write to EEPROM")
   parser.add_argument("-t", "--timeout", help="read/write operation timeout in milliseconds (0 for no timeout) [default=1000]", default="1000")
   parser.add_argument("--block-size", help="read/write in blocks of x bytes [default=64]", default="64")
-  parser.add_argument("--data-step", help="write data step (will write every x'th byte from --data-offset; e.g. 3 will write 1 byte, skip the next two, and write the following) [default=1]", default="1")
+  parser.add_argument("--data-step",
+    help="""write data step (will write every x'th byte from --data-offset;
+      e.g. 3 will write 1 byte, skip the next two, and write the following) [default=1]""",
+    default="1")
   parser.add_argument("--data-offset", help="write data offset (will write data from x'th byte) [default=0]", default="0")
   args = vars(parser.parse_args())
   if DEBUG > 0: print(args)
 
   ser = Serial(args["port"], baudrate=115200, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE)
-  addr, size, count, bs, ds, do, to = (int(x, 0) for x in (args["addr"], args["size"], args["count"], args["block_size"], args["data_step"], args["data_offset"], args["timeout"]))
+  addr, size, count, bs, ds, do, to = (int(args[x], 0) for x in ("addr", "size", "count", "block_size", "data_step", "data_offset", "timeout"))
   data, file = args["data"], args["file"]
   assert not all(x is not None for x in (data, file)), "both data and file specified, only one can be used at a time"
   if file is not None: data = Path(file).read_bytes()
