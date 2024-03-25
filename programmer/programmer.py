@@ -51,12 +51,12 @@ if __name__ == "__main__":
   parser.add_argument("-d", "--data", help="data to write in hexadecimal")
   parser.add_argument("-f", "--file", help="binary file to write to EEPROM")
   parser.add_argument("-t", "--timeout", help="read/write operation timeout in milliseconds (0 for no timeout) [default=1000]", default="1000")
-  parser.add_argument("--block-size", help="read/write in blocks of x bytes [default=64]", default="64")
+  parser.add_argument("--block-size", help="send read/write commands in blocks of x bytes [default=64]", default="64")
+  parser.add_argument("--data-offset", help="write data offset (will write data from x'th byte) [default=0]", default="0")
   parser.add_argument("--data-step",
     help="""write data step (will write every x'th byte from --data-offset;
       e.g. 3 will write 1 byte, skip the next two, and write the following) [default=1]""",
     default="1")
-  parser.add_argument("--data-offset", help="write data offset (will write data from x'th byte) [default=0]", default="0")
   args = vars(parser.parse_args())
   if DEBUG > 0: print(args)
 

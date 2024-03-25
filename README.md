@@ -6,6 +6,64 @@ Software tools for Ben Eater's 8-bit computer build.
 
 Interface the EEPROM programmer module through USB. No need to hardcode, compile and upload EEPROM data every time. Just execute `programmer.py` from your computer and send read/write commands to the programmer module.
 
+### Requirements
+
+- Python 3
+- pyserial
+- PlatformIO
+
+### Setup
+
+Upload programmer firmware to arduino board. Inside the programmer directory run the following command:
+
+```bash
+pio run -t upload
+```
+
+### Usage
+
+```bash
+$ ./programmer.py --help
+usage: programmer.py [-h] [-a ADDR] [-s SIZE] [-c COUNT] [-d DATA] [-f FILE] [-t TIMEOUT] [--block-size BLOCK_SIZE] [--data-step DATA_STEP] [--data-offset DATA_OFFSET] port
+
+8-bit computer EEPROM programmer
+
+positional arguments:
+  port                  UART port the programmer is connected to
+
+options:
+  -h, --help            show this help message and exit
+  -a ADDR, --addr ADDR  address to read/write [default=0]
+  -s SIZE, --size SIZE  size to read
+  -c COUNT, --count COUNT
+                        number of write data chunks [default=1]
+  -d DATA, --data DATA  data to write in hexadecimal
+  -f FILE, --file FILE  binary file to write to EEPROM
+  -t TIMEOUT, --timeout TIMEOUT
+                        read/write operation timeout in milliseconds (0 for no timeout) [default=1000]
+  --block-size BLOCK_SIZE
+                        read/write in blocks of x bytes [default=64]
+  --data-step DATA_STEP
+                        write data step (will write every x'th byte from --data-offset; e.g. 3 will write 1 byte, skip the next two, and write the following) [default=1]
+  --data-offset DATA_OFFSET
+                        write data offset (will write data from x'th byte) [default=0]
+```
+
+Sample commands for a binary file containing the computer microcode to be split into two different EEPROMS (16-bit control words, high byte for one, low byte for the other):
+
+```bash
+$ ./programmer.py /dev/tty.usbserial-110 --file ucode.bin --data-step 2 --data-offset 0 # write the high byte of every 16-bit control words (16-bit -> 2 byte -> --data-step 2)
+$ ./programmer.py /dev/tty.usbserial-110 --file ucode.bin --data-step 2 --data-offset 1 # write the low byte of every 16-bit control words (16-bit -> 2 byte -> --data-step 2)
+# TODO: add output
+```
+
+Sample command to dump the contents of a section of the EEPROM (shown in hexdump format):
+
+```bash
+./programmer.py /dev/tty.usbserial-110 --addr 0 --size 64
+# TODO: add output
+```
+
 ## Microcode Compiler
 
 Define the address structure of the microcode EEPROMs (operation number, instruction code, flags, or more...), the control word and assembly instructions' micrcode. Compile to a binary file and write to EEPROM through programmer.
