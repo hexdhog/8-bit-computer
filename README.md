@@ -52,16 +52,22 @@ options:
 Sample commands for a binary file containing the computer microcode to be split into two different EEPROMS (16-bit control words, high byte for one, low byte for the other):
 
 ```bash
-$ ./programmer.py /dev/tty.usbserial-110 --file ucode.bin --data-step 2 --data-offset 0 # write the high byte of every 16-bit control words (16-bit -> 2 byte -> --data-step 2)
-$ ./programmer.py /dev/tty.usbserial-110 --file ucode.bin --data-step 2 --data-offset 1 # write the low byte of every 16-bit control words (16-bit -> 2 byte -> --data-step 2)
-# TODO: add output
+# write the high byte of every 16-bit control words (16-bit -> 2 byte -> --data-step 2)
+$ ./programmer.py /dev/tty.usbserial-110 --file ucode.bin --data-step 2 --data-offset 0
+
+# write the low byte of every 16-bit control words (16-bit -> 2 byte -> --data-step 2)
+$ ./programmer.py /dev/tty.usbserial-110 --file ucode.bin --data-step 2 --data-offset 1
 ```
 
 Sample command to dump the contents of a section of the EEPROM (shown in hexdump format):
 
 ```bash
-./programmer.py /dev/tty.usbserial-110 --addr 0 --size 64
-# TODO: add output
+$ ./programmer.py /dev/tty.usbserial-110 --addr 0 --size 64
+
+00000000: 40 14 00 00 00 00 00 00 40 14 48 12 00 00 00 00 |@.......@.H.....|
+00000010: 40 14 48 21 00 00 00 00 40 14 48 10 02 00 00 00 |@.H!....@.H.....|
+00000020: 40 14 48 10 02 00 00 00 40 14 08 00 00 00 00 00 |@.H.....@.......|
+00000030: 40 14 00 00 00 00 00 00 40 14 00 00 00 00 00 00 |@.......@.......|
 ```
 
 ## Microcode Compiler
@@ -188,17 +194,24 @@ For example, the following code calculates the fibonacci sequence:
 
 ```asm
 .text
-    LDA 9   # load value at address 9 (first value in data section) to A register
-    ADD 10  # load value at address 10 (second value in data section) and add the value to register A
-    OUT     # display value of register A on the 7-segment display
-    STA 10  # store the value of register A to address 10
-    ADD 9   # load value at address 9 and add the value to register A
-    OUT     # display value of register A on the 7-segment display
-    STA 9   # store the value of register A to address 9
-    J 1     # jump to the instruction at address 1 (ADD 10)
-    HLT     # halt the computer
+	# copy initial values to their corresponding address
+	# this way, if the program restarts, it will always start from the beginning of the sequence
+	LDA 13
+	STA 15
+	LDA 12
+	STA 14
+	ADD 15	# load value at address 12 (second value in data section) and add the value to register A
+	OUT		# display value of register A on the 7-segment display
+	STA 15	# store the value of register A to address 15
+	ADD 14	# load value at address 14 and add the value to register A
+	OUT		# display value of register A on the 7-segment display
+	STA 14	# store the value of register A to address 14
+	J 4		# jump to the instruction at address 1 (ADD 15)
+	HLT		# halt the computer
 
 .data
-    0       # store a 0 at address 9
-    1       # store a 1 at address 10
+	0		# first initial value
+	1		# second initial value
+	0		# first value address (will be overwritten upon program start)
+	0		# second value address (will be overwritten upon program start)
 ```
